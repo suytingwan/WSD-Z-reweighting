@@ -71,12 +71,12 @@ def evaluate_model(args):
 
     tokenizer = load_tokenizer(args.encoder_name)
 
-    eval_path = '/home/ysuay/codes/wsd-contrast-v1/preprocess/{}.csv'.format(args.split)
-    eval_data, eval_keywords, eval_ordered_ids = preprocess_context(tokenizer, eval_path, bsz=1, max_len=-1)
+    eval_path = os.path.join(args.postprocess_data_path, '{}.csv'.format(args.split))
+    eval_data, eval_keywords, eval_ordered_ids = preprocess_context(tokenizer, eval_path, max_len=-1)
     eval_dataset = EvalDataset(eval_data, eval_ordered_ids)
     eval_loader = DataLoader(eval_dataset, batch_size=1, shuffle=False, num_workers=4, pin_memory=True)
 
-    wn_path = os.path.join(args.data_path, 'Data_Validation/candidatesWN30.txt')
+    wn_path = os.path.join(args.data_path, 'WSD_Evaluation_Framework/Data_Validation/candidatesWN30.txt')
     wn_senses = load_wn_senses(wn_path)
     gloss_dict = load_and_preprocess_glosses(eval_data, tokenizer, wn_senses, max_len=32)
 
@@ -87,8 +87,8 @@ def evaluate_model(args):
         for inst, prediction in eval_preds:
             f.write('{} {}\n'.format(inst, prediction))
 
-    gold_filepath = '/home/ysuay/codes/LMMS/external/wsd_eval/WSD_Evaluation_Framework/Evaluation_Datasets/{}/{}.gold.key.txt'.format(args.split, args.split)
-    scorer_path = os.path.join(args.data_path, 'Evaluation_Datasets')
+    gold_filepath = os.path.join(args.data_path, 'WSD_Evaluation_Framework/Evaluation_Datasets/{}/{}.gold.key.txt'.format(args.split, args.split))
+    scorer_path = os.path.join(args.data_path, 'WSD_Evaluation_Framework/Evaluation_Datasets')
     p, r, f1 = evaluate_output(scorer_path, gold_filepath, pred_filepath)
     print('f1 of BERT probe on {} test set = {}'.format(args.split, f1))
 

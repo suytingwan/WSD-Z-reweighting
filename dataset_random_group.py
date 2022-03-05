@@ -15,8 +15,7 @@ from torch.utils.data import Dataset
 from wsd_models.util import *
 
 
-def preprocess_context(tokenizer, text_data, bsz=1, max_len=-1):
-    if max_len == -1: assert bsz==1
+def preprocess_context(tokenizer, text_data, max_len=-1):
 
     data = defaultdict(dict)
     ordered_ids = []
@@ -84,10 +83,7 @@ class SemDataset(Dataset):
         self.batch_size = batch_size
         self.keywords = list(data.keys())
         self.keycounts = []
-        fw = open('wordcount.txt', 'w')
-        for keyword in self.keywords:
-            fw.write('{}\t{}\n'.format(keyword, len(self.data[keyword]['sense'])))
-        fw.close()
+
         for key in self.keywords:
             self.keycounts.append(max(1.0, len(data[key]['sense'])/(batch_size+0.0)))
         self.key_cum_sum = np.cumsum(self.keycounts)
@@ -196,8 +192,8 @@ def load_and_preprocess_glosses_train(lemma_words, tokenizer, wn_senses, max_len
 if __name__ == "__main__":
     text_data = './preprocess/semcor.csv'
     tokenizer = load_tokenizer('bert-base')
-    batched_data, keywords, ordered_ids = preprocess_context(tokenizer, text_data, bsz=4, max_len=128)
-    wn_senses = load_wn_senses('/home/ysuay/codes/LMMS/external/wsd_eval/WSD_Evaluation_Framework/Data_Validation/candidatesWN30.txt')
+    batched_data, keywords, ordered_ids = preprocess_context(tokenizer, text_data, max_len=128)
+    wn_senses = load_wn_senses('./data/WSD_Evaluation_Framework/Data_Validation/candidatesWN30.txt')
     load_and_preprocess_glosses(keywords, tokenizer, wn_senses, max_len=32)
     SemDataset(batched_data, 4)
 

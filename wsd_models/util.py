@@ -26,12 +26,6 @@ def load_pretrained_model(name):
     elif name == 'bert-base': #bert base
         model = BertModel.from_pretrained('bert-base-uncased')
         hdim = 768
-    elif name == 'albert-xxlarge-v2':
-        model = AlbertModel.from_pretrained("albert-xxlarge-v2")
-        hdim = 4096
-    elif name == 't5-base':
-        model = AutoModelForSeq2SeqLM.from_pretrained("t5-base")
-        hdim = 768
 
     return model, hdim
 
@@ -44,10 +38,6 @@ def load_tokenizer(name):
 		tokenizer = BertTokenizer.from_pretrained('bert-large-uncased')
 	elif name == 'bert-base': #bert base
 		tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-	elif name == 'albert-xxlarge-v2':
-		tokenizer = AlbertTokenizer.from_pretrained('albert-xxlarge-v2')
-	elif name == 't5-base':
-		tokenizer = AutoTokenizer.from_pretrained('t5-base')
 	return tokenizer
 
 def load_wn_senses(path):
@@ -109,58 +99,13 @@ def process_encoder_outputs(output, mask, as_tensor=False):
 
 #run WSD Evaluation Framework scorer within python
 def evaluate_output(scorer_path, gold_filepath, out_filepath):
-	#eval_cmd = ['java','-cp', scorer_path, 'Scorer', gold_filepath, out_filepath]
-	eval_cmd = ['/home/ysuay/tools/anaconda3py37/bin/java','-cp', scorer_path, 'Scorer', gold_filepath, out_filepath]
+	eval_cmd = ['java','-cp', scorer_path, 'Scorer', gold_filepath, out_filepath]
 	print(eval_cmd)
 	#output = subprocess.Popen(eval_cmd, stdout=subprocess.PIPE ).communicate()[0]
 	output = subprocess.check_output(eval_cmd)
 	output = [x.decode("utf-8") for x in output.splitlines()]
 	p,r,f1 =  [float(output[i].split('=')[-1].strip()[:-1]) for i in range(3)]
 	return p, r, f1
-
-def load_data(datapath, name):
-	text_path = os.path.join(datapath, '{}.data.xml'.format(name))
-	gold_path = os.path.join(datapath, '{}.gold.key.txt'.format(name))
-
-	#load gold labels 
-	gold_labels = {}
-	with open(gold_path, 'r', encoding="utf8") as f:
-		for line in f:
-			line = line.strip().split(' ')
-			instance = line[0]
-			#this means we are ignoring other senses if labeled with more than one 
-			#(happens at least in SemCor data)
-			key = line[1]
-			gold_labels[instance] = key
-
-	#load train examples + annotate sense instances with gold labels
-	sentences = []
-	s = []
-	with open(text_path, 'r', encoding="utf8") as f:
-		for line in f:
-			line = line.strip()
-			if line == '</sentence>':
-				sentences.append(s)
-				s=[]
-				
-			elif line.startswith('<instance') or line.startswith('<wf'):
-				word = re.search('>(.+?)<', line).group(1)
-				lemma = re.search('lemma="(.+?)"', line).group(1) 
-				pos =  re.search('pos="(.+?)"', line).group(1)
-
-				#clean up data
-				word = re.sub('&apos;', '\'', word)
-				lemma = re.sub('&apos;', '\'', lemma)
-
-				sense_inst = -1
-				sense_label = -1
-				if line.startswith('<instance'):
-					sense_inst = re.search('instance id="(.+?)"', line).group(1)
-					#annotate sense instance with gold label
-					sense_label = gold_labels[sense_inst]
-				s.append((word, lemma, pos, sense_inst, sense_label))
-
-	return sentences
 
 #normalize ids list, masks to whatever the passed in length is
 def normalize_length(ids, attn_mask, o_mask, max_len, pad_id):
@@ -183,42 +128,3 @@ def normalize_length(ids, attn_mask, o_mask, max_len, pad_id):
 
 		return ids, attn_mask, o_mask
 
-#filters down training dataset to (up to) k examples per sense 
-#for few-shot learning of the model
-def filter_k_examples(data, k):
-	#shuffle data so we don't only get examples for (common) senses from beginning
-	random.shuffle(data)
-	#track number of times sense from data is used
-	sense_dict = {}
-	#store filtered data 
-	filtered_data = []
-
-	example_count = 0
-	for sent in data:
-		filtered_sent = []
-		for form, lemma, pos, inst, sense in sent:
-			#treat unlabeled words normally
-			if sense == -1:
-				x  = (form, lemma, pos, inst, sense)
-			elif sense in sense_dict:
-				if sense_dict[sense] < k: 
-					#increment sense count and add example to filtered data
-					sense_dict[sense] += 1
-					x = (form, lemma, pos, inst, sense)
-					example_count += 1
-				else: #if the data already has k examples of this sense
-					#add example with no instance or sense label to data
-					x = (form, lemma, pos, -1, -1)
-			else:
-				#add labeled example to filtered data and sense dict
-				sense_dict[sense] = 1
-				x = (form, lemma, pos, inst, sense)
-				example_count += 1
-			filtered_sent.append(x)
-		filtered_data.append(filtered_sent)
-
-	print("k={}, training on {} sense examples...".format(k, example_count))
-
-	return filtered_data
-
-#EOF
