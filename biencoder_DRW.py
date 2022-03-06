@@ -146,7 +146,7 @@ def train_model(args):
 
     train_path = os.path.join(args.postprocess_data_path, 'semcor.csv')
     train_data, train_keywords, train_ordered_ids = preprocess_context(tokenizer, train_path, max_len=args.context_max_length)
-    train_dataset = SemDataset(train_data, batch_size=4)
+    train_dataset = SemDataset(train_data, batch_size=args.mini_batch_size)
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=1, pin_memory=True) 
 
     semeval2007_path = os.path.join(args.postprocess_data_path, 'semeval2007.csv')
@@ -238,8 +238,10 @@ if __name__ == "__main__":
     parser.add_argument('--context-max-length', type=int, default=128)
     parser.add_argument('--gloss-max-length', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=20)
-    parser.add_argument('--gradient-step-size', type=int, default=40, 
+    parser.add_argument('--gradient-step-size', type=int, default=36, 
         help='gradient update step according to context size')
+    parser.add_argument('--mini-batch-size', type=int, default=4,
+        help='batch size for context sentences') 
     parser.add_argument('--encoder-name', type=str, default='bert-base',
 	choices=['bert-base', 'bert-large', 'roberta-base', 'roberta-large'])
     parser.add_argument('--ckpt', type=str, required=True,

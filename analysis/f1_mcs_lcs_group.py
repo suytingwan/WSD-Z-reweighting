@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     gold_filepath = '../data/WSD_Evaluation_Framework/Evaluation_Datasets/ALL/ALL.gold.key.txt'
 
-    lemma_words_file = '/home/ysuay/codes/WSD-margin/preprocess/semcor_count.txt'
+    lemma_words_file = '../preprocess/semcor_count.txt'
 
     groups = [300, 600, 900, 1800, 3900, 22436]
     dicts_synset = {}

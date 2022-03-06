@@ -200,7 +200,7 @@ if __name__ == "__main__":
     parser.add_argument('--context-max-length', type=int, default=128)
     parser.add_argument('--gloss-max-length', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=20)
-    parser.add_argument('--gradient-step-size', type=int, default=40, 
+    parser.add_argument('--gradient-step-size', type=int, default=36, 
         help='gradient update step according to context size')
     parser.add_argument('--mini-batch-size', type=int, default=4,
         help='batch size for context sentences')
