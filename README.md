@@ -1,5 +1,5 @@
 
-The is the code repo for The ACL 2022 paper [Rare and zero-shot word sense disambiguation using Z-reweighting](https://github.com/suytingwan/WSD-Z-reweighting)
+The is the code repo for The ACL 2022 paper: Rare and zero-shot word sense disambiguation using Z-reweighting
 
 ## Envs:
    python 3.7.6
