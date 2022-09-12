@@ -32,7 +32,7 @@ def wn_first_sense(key, postag=None):
     return found    
 
 
-def eval_output(score_path, gold_filepath, out_filepath):
+def eval_output(scorer_path, gold_filepath, out_filepath):
 
     eval_cmd = ['java', '-cp', scorer_path, 'Scorer', gold_filepath, out_filepath]
     print(eval_cmd)
